@@ -1373,6 +1373,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: GolfBall
       objectReference: {fileID: 0}
+    - target: {fileID: 5176141814909322605, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
+      propertyPath: InitialModule.startSpeed.scalar
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5176141814909322605, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
+      propertyPath: EmissionModule.rateOverDistance.scalar
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 7397837419699259851, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.18

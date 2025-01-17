@@ -50,15 +50,6 @@ public class GolfBall : MonoBehaviour
 
     private void Update()
     {
-        GolfBallTrail();
-    }
-
-    private void GolfBallTrail()
-    {
-        currentDirection = rb2D.velocity;
-
-        float angle = Mathf.Atan2(rb2D.velocity.y, rb2D.velocity.x) * Mathf.Rad2Deg;
-        golfBallTrail.transform.rotation = Quaternion.Euler(angle, 0, 0);
     }
 
     private void OnShoot()
