@@ -12,7 +12,7 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: gamedevnr1
+  companyName: DefaultCompany
   productName: Golf With One Friend
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
