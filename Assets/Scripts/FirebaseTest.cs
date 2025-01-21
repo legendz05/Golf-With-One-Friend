@@ -3,11 +3,28 @@ using Firebase;
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Extensions;
+using System.Threading;
+using UnityEngine.SceneManagement;
 
 public class FirebaseTest : MonoBehaviour
 {
-    FirebaseAuth auth;
+    public static FirebaseTest instance;
 
+    FirebaseAuth auth;
+    private string emailVar;
+    private string passwordVar;
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
     void Start()
     {
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
@@ -70,6 +87,29 @@ public class FirebaseTest : MonoBehaviour
         });
     }
 
+    public void emailStringChanged(string email)
+    {
+        emailVar = email;
+        Debug.Log($"Email: {emailVar}");
+    }
+
+    public void passwordStringChanged(string password)
+    {
+        passwordVar = password;
+        Debug.Log($"Password: {password}");
+    }
+
+    public void ButtonRegister()
+    {
+        RegisterNewUser(emailVar, passwordVar);
+    }
+
+    public void SignInButton()
+    {
+        SignIn(emailVar, passwordVar);
+        DataTest(auth.CurrentUser.UserId, Random.Range(0, 100).ToString());
+    }
+
     private void RegisterNewUser(string email, string password)
     {
         Debug.Log("Starting Registration");
@@ -101,14 +141,20 @@ public class FirebaseTest : MonoBehaviour
                 FirebaseUser newUser = task.Result.User;
                 Debug.LogFormat("User signed in successfully: {0} ({1})",
                   newUser.DisplayName, newUser.UserId);
+                LoadMainMenu();
             }
         });
     }
 
-    private void SignOut()
+    public void SignOut()
     {
         auth.SignOut();
         Debug.Log("User signed out");
+    }
+
+    public void LoadMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 
     private void SaveToFirebase(string data)
