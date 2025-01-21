@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "991366760762",
+    "firebase_url": "https://golfwithonefriend-28760-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "golfwithonefriend-28760",
+    "storage_bucket": "golfwithonefriend-28760.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:991366760762:android:6ac36170dbf6156df7e803",
+        "android_client_info": {
+          "package_name": "com.gamedevnr1.GolfWithOneFriend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdthDNUy7fhJNrLOnXGwvo8UslDc5rNmE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
