@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
@@ -16,6 +17,8 @@ public class GameManager : MonoBehaviour
     public Action ShootActivate = null;
     public Action GameOver = null;
     public Action ResetPlayer = null;
+
+    public UnityEvent ResetRound;
 
     private GolfBall golfBall;
     public int currentRound;
@@ -127,6 +130,7 @@ public class GameManager : MonoBehaviour
         if (currentRound < 4)
         {
             ResetPlayer?.Invoke();
+            ResetRound?.Invoke();
             StartCoroutine(RoundBegin());
         }
         else

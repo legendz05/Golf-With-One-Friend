@@ -29,9 +29,6 @@ public class GolfBall : MonoBehaviour
         GameManager.instance.ShootActivate -= OnShoot;
         GameManager.instance.ShootActivate += OnShoot;
 
-        GameManager.instance.ResetPlayer -= ResetPlayer;
-        GameManager.instance.ResetPlayer += ResetPlayer;
-
         OnLanding -= WhenLanding;
         OnLanding += WhenLanding;
 
@@ -93,10 +90,9 @@ public class GolfBall : MonoBehaviour
         }
     }
 
-    private void ResetPlayer()
+    public void ResetPlayer()
     {
         transform.position = startingPos;
-        GameManager.instance.ResetPlayer -= ResetPlayer;
 
         GameManager.instance.ShootActivate -= OnShoot;
         GameManager.instance.ShootActivate += OnShoot;

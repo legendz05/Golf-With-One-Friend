@@ -365,7 +365,7 @@ ParticleSystem:
     startSpeed:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5
+      scalar: 0
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -1119,7 +1119,7 @@ ParticleSystem:
     rateOverDistance:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0
+      scalar: 10
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -5171,7 +5171,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6433947123175389192, guid: fbd66c5e7b7db0d4f80c17afd6e516b7, type: 3}
       propertyPath: m_Name
-      value: ForcePowerUpTint
+      value: PowerUpTint
       objectReference: {fileID: 0}
     - target: {fileID: 8497433023679992697, guid: fbd66c5e7b7db0d4f80c17afd6e516b7, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5236,6 +5236,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4485016220135402090}
     m_Modifications:
+    - target: {fileID: 212177095494421695, guid: bb4425eef5023f646801b7a9140b0777, type: 3}
+      propertyPath: powerUps.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 212177095494421695, guid: bb4425eef5023f646801b7a9140b0777, type: 3}
+      propertyPath: powerUps.Array.data[1]
+      value: 
+      objectReference: {fileID: 65202880972686183, guid: 2379c843b8b6adc46878cad2f7edf4b0, type: 3}
     - target: {fileID: 212177095494421695, guid: bb4425eef5023f646801b7a9140b0777, type: 3}
       propertyPath: powerupTints.Array.size
       value: 1

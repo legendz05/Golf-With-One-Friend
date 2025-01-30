@@ -48,7 +48,14 @@ public class PowerUpManager : MonoBehaviour
                     if (touchPos.magnitude - spawnedPowerUp.transform.position.magnitude < 1 && spawnedPowerUp != null)
                     {
                         Debug.Log("Touch detected in PowerUpManager");
-                        ForcePowerUp();
+                        if (spawnedPowerUp.CompareTag("Force"))
+                        {
+                            ForcePowerUp();
+                        }
+                        else if (spawnedPowerUp.CompareTag("Gravity"))
+                        {
+                            GravityPowerUp();
+                        }
                         Destroy(spawnedPowerUp);
                     }
                 }
@@ -63,6 +70,20 @@ public class PowerUpManager : MonoBehaviour
             Debug.Log("Force POWERUP");
             golfBall.GetComponent<Rigidbody2D>().AddForce(new Vector2(15, 40), ForceMode2D.Impulse);
             powerupTints[0].Play("RedTint");
+        }
+        else
+        {
+            Debug.Log("null is golfBall");
+        }
+    }
+
+    public void GravityPowerUp()
+    {
+        if (golfBall != null)
+        {
+            Debug.Log("Gravity POWERUP");
+            golfBall.GetComponent<Rigidbody2D>().AddForce(new Vector2(0, -20), ForceMode2D.Impulse);
+            powerupTints[0].Play("BlackTint");
         }
         else
         {
