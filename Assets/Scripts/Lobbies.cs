@@ -3,6 +3,9 @@ using UnityEngine;
 public class Lobbies : MonoBehaviour
 {
 
+    [SerializeField] private GameObject lobbyObject;
+    [SerializeField] private GameObject menuObject;
+
     void Start()
     {
 
@@ -16,6 +19,7 @@ public class Lobbies : MonoBehaviour
 
     public void LobbyCanvasEnabler()
     {
-
+        lobbyObject.SetActive(true);
+        menuObject.SetActive(false);
     }
 }
