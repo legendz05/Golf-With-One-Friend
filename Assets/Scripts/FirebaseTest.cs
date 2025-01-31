@@ -3,16 +3,28 @@ using Firebase;
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Extensions;
-using System.Threading;
 using UnityEngine.SceneManagement;
+using TMPro;
+using UnityEngine.UI;
+using NUnit.Framework;
+using System.Text.RegularExpressions;
 
 public class FirebaseTest : MonoBehaviour
 {
     public static FirebaseTest instance;
 
-    FirebaseAuth auth;
-    private string emailVar;
-    private string passwordVar;
+    private FirebaseAuth auth;
+    private DatabaseReference db;
+
+    private string emailVar, passwordVar, usernameVar;
+
+    [SerializeField] private TMP_InputField emailText;
+    [SerializeField] private TMP_InputField passwordText;
+    [SerializeField] private TMP_InputField usernameText;
+
+    [SerializeField] private Button registerButton;
+    [SerializeField] private Button signInButton;
+    [SerializeField] private Button signOutButton;
 
     private void Awake()
     {
@@ -24,163 +36,184 @@ public class FirebaseTest : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        usernameText.gameObject.SetActive(false);
     }
-    void Start()
+
+    private void Start()
     {
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
         {
             if (task.Exception != null)
+            {
                 Debug.LogError(task.Exception);
+                return;
+            }
 
             auth = FirebaseAuth.DefaultInstance;
-
-            FirebaseDatabase.DefaultInstance.SetPersistenceEnabled(false);
-
+            db = FirebaseDatabase.DefaultInstance.RootReference;
         });
     }
 
-    private void Update()
+    // ------------------------ User Authentication ------------------------
+
+    public void RegisterUser()
     {
-        if (Input.GetKeyDown(KeyCode.A))
-            AnonymousSignIn();
+        if (string.IsNullOrEmpty(emailVar) || string.IsNullOrEmpty(passwordVar))
+        {
+            Debug.LogWarning("Email or password is empty.");
+            return;
+        }
 
-        if (Input.GetKeyDown(KeyCode.D))
-            DataTest(auth.CurrentUser.UserId, Random.Range(0, 100).ToString());
-
-        if (Input.GetKeyDown(KeyCode.R))
-            RegisterNewUser("isac@test.test", "password");
-
-        if (Input.GetKeyDown(KeyCode.S))
-            SignIn("isac@test.test", "password");
-
-        if (Input.GetKeyDown(KeyCode.Q))
-            SignOut();
-    }
-
-    private void AnonymousSignIn()
-    {
-        auth.SignInAnonymouslyAsync().ContinueWithOnMainThread(task =>
+        auth.CreateUserWithEmailAndPasswordAsync(emailVar, passwordVar).ContinueWithOnMainThread(task =>
         {
             if (task.Exception != null)
             {
                 Debug.LogWarning(task.Exception);
+                return;
             }
-            else
-            {
-                FirebaseUser newUser = task.Result.User;
-                Debug.LogFormat("User signed in successfully: {0} ({1})",
-                    newUser.DisplayName, newUser.UserId);
-            }
+
+            FirebaseUser newUser = task.Result.User;
+            Debug.Log($"User Registered: {newUser.Email} ({newUser.UserId})");
+
         });
     }
 
-    private void DataTest(string userID, string data)
+    public void SignInUser()
     {
-        Debug.Log("Trying to write data...");
-        var db = FirebaseDatabase.DefaultInstance;
-        db.RootReference.Child("users").Child(userID).SetValueAsync(data).ContinueWithOnMainThread(task =>
+        if (string.IsNullOrEmpty(emailVar) || string.IsNullOrEmpty(passwordVar))
         {
-            if (task.Exception != null)
-                Debug.LogWarning(task.Exception);
-            else
-                Debug.Log("DataTestWrite: Complete");
-        });
-    }
+            Debug.LogWarning("Email or password is empty.");
+            return;
+        }
 
-    public void emailStringChanged(string email)
-    {
-        emailVar = email;
-        Debug.Log($"Email: {emailVar}");
-    }
-
-    public void passwordStringChanged(string password)
-    {
-        passwordVar = password;
-        Debug.Log($"Password: {password}");
-    }
-
-    public void ButtonRegister()
-    {
-        RegisterNewUser(emailVar, passwordVar);
-    }
-
-    public void SignInButton()
-    {
-        SignIn(emailVar, passwordVar);
-        DataTest(auth.CurrentUser.UserId, Random.Range(0, 100).ToString());
-    }
-
-    private void RegisterNewUser(string email, string password)
-    {
-        Debug.Log("Starting Registration");
-        auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWithOnMainThread(task =>
+        auth.SignInWithEmailAndPasswordAsync(emailVar, passwordVar).ContinueWithOnMainThread(task =>
         {
             if (task.Exception != null)
             {
                 Debug.LogWarning(task.Exception);
+                return;
             }
-            else
+
+            FirebaseUser newUser = task.Result.User;
+            Debug.Log($"User signed in: {newUser.Email} ({newUser.UserId})");
+
+            // Check if user has a username
+            LoadUsernameFromFirebase(username =>
             {
-                FirebaseUser newUser = task.Result.User;
-                Debug.LogFormat("User Registerd: {0} ({1})",
-                  newUser.DisplayName, newUser.UserId);
-            }
+                if (!string.IsNullOrEmpty(username) && username != "Guest")
+                {
+                    LoadMainMenu();
+                }
+                else
+                {
+                    usernameText.gameObject.SetActive(true);
+                    emailText.gameObject.SetActive(false);
+                    passwordText.gameObject.SetActive(false);
+
+                    registerButton.gameObject.SetActive(false);
+                    signInButton.gameObject.SetActive(false);
+                    signOutButton.gameObject.SetActive(false);
+                }
+            });
         });
     }
 
-    private void SignIn(string email, string password)
-    {
-        auth.SignInWithEmailAndPasswordAsync(email, password).ContinueWithOnMainThread(task =>
-        {
-            if (task.Exception != null)
-            {
-                Debug.LogWarning(task.Exception);
-            }
-            else
-            {
-                FirebaseUser newUser = task.Result.User;
-                Debug.LogFormat("User signed in successfully: {0} ({1})",
-                  newUser.DisplayName, newUser.UserId);
-                LoadMainMenu();
-            }
-        });
-    }
-
-    public void SignOut()
+    public void SignOutUser()
     {
         auth.SignOut();
-        Debug.Log("User signed out");
+        Debug.Log("User signed out.");
     }
+
+    // ------------------------ Username Management ------------------------
+
+    public void SaveUsername()
+    {
+        if (string.IsNullOrEmpty(usernameVar))
+        {
+            Debug.LogWarning("Username cannot be empty.");
+            return;
+        }
+
+        string userID = auth.CurrentUser?.UserId;
+        if (userID == null)
+        {
+            Debug.LogError("No user signed in.");
+            return;
+        }
+
+        // Check if username already exists
+        db.Child("usernames").Child(usernameVar).GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.Result.Exists)
+            {
+                Debug.LogWarning("Username already taken. Choose another.");
+                return;
+            }
+
+            // Save username under user ID
+            db.Child("users").Child(userID).Child("userName").SetValueAsync(usernameVar).ContinueWithOnMainThread(task1 =>
+            {
+                if (task1.Exception != null)
+                {
+                    Debug.LogWarning(task1.Exception);
+                    return;
+                }
+
+                Debug.Log("Username saved under user ID.");
+
+                // Save username in global list
+                db.Child("usernames").Child(usernameVar).SetValueAsync(userID).ContinueWithOnMainThread(task2 =>
+                {
+                    if (task2.Exception == null)
+                    {
+                        Debug.Log("Username stored globally.");
+                        LoadMainMenu();
+                    }
+                    else
+                    {
+                        Debug.LogWarning(task2.Exception);
+                    }
+                });
+            });
+        });
+    }
+
+    public void LoadUsernameFromFirebase(System.Action<string> callback)
+    {
+        string userID = auth.CurrentUser?.UserId;
+        if (userID == null)
+        {
+            Debug.LogError("No user signed in.");
+            callback?.Invoke("Guest");
+            return;
+        }
+
+        db.Child("users").Child(userID).Child("userName").GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.Result.Exists)
+            {
+                string username = task.Result.Value.ToString();
+                usernameVar = username;
+                Debug.Log($"Loaded Username: {username}");
+                callback?.Invoke(username);
+            }
+            else
+            {
+                Debug.LogWarning("Username not found in database.");
+                callback?.Invoke("Guest");
+            }
+        });
+    }
+
+    // ------------------------ UI & Scene Management ------------------------
 
     public void LoadMainMenu()
     {
         SceneManager.LoadScene("MainMenu");
     }
 
-    private void SaveToFirebase(string data)
-    {
-        var db = FirebaseDatabase.DefaultInstance;
-        var userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
-        //puts the JSON data in the "users/userId" part of the database.
-        db.RootReference.Child("users").Child(userId).SetRawJsonValueAsync(data);
-    }
-
-    private void LoadFromFirebase()
-    {
-        var db = FirebaseDatabase.DefaultInstance;
-        var userId = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
-        db.RootReference.Child("users").Child(userId).GetValueAsync().ContinueWithOnMainThread(task =>
-        {
-            if (task.Exception != null)
-            {
-                Debug.LogError(task.Exception);
-            }
-
-            //here we get the result from our database.
-            DataSnapshot snap = task.Result;
-
-            //And send the JSON data to a function that can update our game.
-            //LoadState(snap.GetRawJsonValue());
-        });
-    }
+    public void UpdateEmail(string email) => emailVar = email;
+    public void UpdatePassword(string password) => passwordVar = password;
+    public void UpdateUsername(string username) => usernameVar = username;
 }

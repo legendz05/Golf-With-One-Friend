@@ -1,0 +1,1 @@
+C:\Users\isacg\Documents\Golf-With-One-Friend\Golf-With-One-Friend\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\FramePacing\UnitySwappyWrapper.h

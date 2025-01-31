@@ -137,7 +137,14 @@ public class GameManager : MonoBehaviour
         {
             distanceText.text = "";
             bestDistance.text = $"Best Distance: {golfBall.bestDistance}m";
+            Invoke(nameof(LoadMain), 3);
+
         }
+    }
+
+    void LoadMain()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 }
 
