@@ -8,6 +8,8 @@ using TMPro;
 using UnityEngine.UI;
 using NUnit.Framework;
 using System.Text.RegularExpressions;
+using System;
+using UnityEditor.VersionControl;
 
 public class FirebaseTest : MonoBehaviour
 {
@@ -25,6 +27,8 @@ public class FirebaseTest : MonoBehaviour
     [SerializeField] private Button registerButton;
     [SerializeField] private Button signInButton;
     [SerializeField] private Button signOutButton;
+
+    [SerializeField] private TextMeshProUGUI errorMessage;
 
     private void Awake()
     {
@@ -69,7 +73,7 @@ public class FirebaseTest : MonoBehaviour
         {
             if (task.Exception != null)
             {
-                Debug.LogWarning(task.Exception);
+                GetErrorMessage(task.Exception);
                 return;
             }
 
@@ -91,7 +95,7 @@ public class FirebaseTest : MonoBehaviour
         {
             if (task.Exception != null)
             {
-                Debug.LogWarning(task.Exception);
+                GetErrorMessage(task.Exception);
                 return;
             }
 
@@ -204,6 +208,92 @@ public class FirebaseTest : MonoBehaviour
                 callback?.Invoke("Guest");
             }
         });
+    }
+
+    //------------------------- Error Messages  ------------------------
+
+    public void GetErrorMessage(Exception exception)
+    {
+        Debug.Log($"Exception Type: {exception.GetType()} - Message: {exception.Message}");
+
+        Firebase.FirebaseException firebaseEx = null;
+
+        if (exception is AggregateException aggregateException)
+        {
+            foreach (var innerException in aggregateException.InnerExceptions)
+            {
+                if (innerException is Firebase.FirebaseException innerFirebaseEx)
+                {
+                    firebaseEx = innerFirebaseEx;
+                    break; // Exit loop once we find the Firebase exception
+                }
+            }
+        }
+        else if (exception is Firebase.FirebaseException directFirebaseEx)
+        {
+            firebaseEx = directFirebaseEx;
+        }
+
+        string message = "An unknown error occurred.";
+
+        if (firebaseEx != null)
+        {
+            var errorCode = (AuthError)firebaseEx.ErrorCode;
+            message = GetErrorMessage(errorCode);
+        }
+        else
+        {
+            message = exception.Message; // Default to generic error message
+        }
+
+        Debug.LogError($"Final Error Message: {message}");
+
+        // Ensure errorMessage is assigned and visible
+        if (errorMessage != null)
+        {
+            errorMessage.text = message;
+            errorMessage.gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogError("errorMessage is NULL! Make sure it is assigned in the Unity Inspector.");
+        }
+    }
+
+
+
+    private string GetErrorMessage(AuthError errorCode)
+    {
+        var message = "";
+        switch (errorCode)
+        {
+            case AuthError.AccountExistsWithDifferentCredentials:
+                message = "Account exists!";
+                break;
+            case AuthError.MissingPassword:
+                message = "Missing password!";
+                break;
+            case AuthError.WeakPassword:
+                message = "Weak password!";
+                break;
+            case AuthError.WrongPassword:
+                message = "Wrong password!";
+                break;
+            case AuthError.EmailAlreadyInUse:
+                message = "Email already in use!";
+                break;
+            case AuthError.InvalidEmail:
+                message = "Email invalid!";
+                break;
+            case AuthError.MissingEmail:
+                message = "Email missing!";
+                break;
+            default:
+                message = "Error!";
+                break;
+        }
+        errorMessage.text = message;
+        return message;
     }
 
     // ------------------------ UI & Scene Management ------------------------

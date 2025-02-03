@@ -12,7 +12,7 @@ public class MainMenu : MonoBehaviour
 {
     [SerializeField] private TMP_Text usernameText;
 
-    void OnLevelWasLoaded()
+    void OnEnable()
     {
         FirebaseTest.instance.LoadUsernameFromFirebase((username) =>
         {
