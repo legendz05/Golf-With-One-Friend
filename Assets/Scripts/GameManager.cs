@@ -144,7 +144,7 @@ public class GameManager : MonoBehaviour
 
     void LoadMain()
     {
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene("Login");
     }
 }
 

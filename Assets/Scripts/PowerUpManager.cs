@@ -97,7 +97,7 @@ public class PowerUpManager : MonoBehaviour
 
         while (GameManager.instance.matchState == MatchState.GolfBallInAir)
         {
-            yield return new WaitForSeconds(3);
+            yield return new WaitForSeconds(2);
 
             Vector3 cameraPosition = mainCamera.transform.position;
             float cameraHeight = mainCamera.orthographicSize * 2f;
@@ -116,7 +116,7 @@ public class PowerUpManager : MonoBehaviour
             spawnedPowerUp = Instantiate(powerUps[randomPowerUp], new Vector2(spawnX, spawnY), Quaternion.identity);
             spawnedPowerUp.transform.SetParent(mainCamera.transform);
 
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.5f);
             Destroy(spawnedPowerUp);
         }
     }
