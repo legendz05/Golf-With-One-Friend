@@ -18,7 +18,7 @@ public class LobbyManager : MonoBehaviour
         auth = FirebaseAuth.DefaultInstance;
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
 
-        GetCurrentUser();
+        Invoke(nameof(GetCurrentUser), 3);
     }
 
     void GetCurrentUser()
@@ -70,7 +70,7 @@ public class LobbyManager : MonoBehaviour
             {
                 string lobbyID = lobby.Key;
                 string host = lobby.Child("Host").Value.ToString();
-                string guest = lobby.Child("Guest").Value != null ? lobby.Child("Guest").Value.ToString() : "Waiting for player...";
+                string guest = lobby.Child("Guest").Value.ToString();
 
                 if (host == currentUser || guest == currentUser)
                 {

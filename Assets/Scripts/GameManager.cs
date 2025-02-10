@@ -115,6 +115,8 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         matchState = newState;
 
+        Animator golfBallAnimator = golfBall.GetComponent<Animator>();
+
         if (invokeShoot)
         {
             Debug.Log("Invoking Shoot action...");

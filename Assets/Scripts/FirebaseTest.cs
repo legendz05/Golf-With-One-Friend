@@ -102,7 +102,6 @@ public class FirebaseTest : MonoBehaviour
             FirebaseUser newUser = task.Result.User;
             Debug.Log($"User signed in: {newUser.Email} ({newUser.UserId})");
 
-            // Check if user has a username
             LoadUsernameFromFirebase(username =>
             {
                 if (!string.IsNullOrEmpty(username) && username != "Guest")
@@ -146,7 +145,6 @@ public class FirebaseTest : MonoBehaviour
             return;
         }
 
-        // Check if username already exists
         db.Child("usernames").Child(usernameVar).GetValueAsync().ContinueWithOnMainThread(task =>
         {
             if (task.Result.Exists)
@@ -155,7 +153,6 @@ public class FirebaseTest : MonoBehaviour
                 return;
             }
 
-            // Save username under user ID
             db.Child("users").Child(userID).Child("userName").SetValueAsync(usernameVar).ContinueWithOnMainThread(task1 =>
             {
                 if (task1.Exception != null)
@@ -166,7 +163,6 @@ public class FirebaseTest : MonoBehaviour
 
                 Debug.Log("Username saved under user ID.");
 
-                // Save username in global list
                 db.Child("usernames").Child(usernameVar).SetValueAsync(userID).ContinueWithOnMainThread(task2 =>
                 {
                     if (task2.Exception == null)
@@ -243,12 +239,11 @@ public class FirebaseTest : MonoBehaviour
         }
         else
         {
-            message = exception.Message; // Default to generic error message
+            message = exception.Message;
         }
 
         Debug.LogError($"Final Error Message: {message}");
 
-        // Ensure errorMessage is assigned and visible
         if (errorMessage != null)
         {
             errorMessage.text = message;

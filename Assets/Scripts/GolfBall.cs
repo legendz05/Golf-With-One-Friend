@@ -56,7 +56,6 @@ public class GolfBall : MonoBehaviour
             Debug.LogError("Cannot shoot: Missing references.");
             return;
         }
-
         Debug.Log($"Shooting with Direction: {angleIndicator.direction}, Power: {powerIndicator.powerValue}");
         rb2D.AddForce(angleIndicator.direction * powerIndicator.powerValue, ForceMode2D.Impulse);
         golfBallTrail.Play();

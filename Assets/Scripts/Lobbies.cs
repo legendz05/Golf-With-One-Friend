@@ -100,8 +100,6 @@ public class Lobbies : MonoBehaviour
         });
     }
 
-
-
     public string GenerateLobbyID()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
