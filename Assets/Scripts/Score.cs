@@ -15,7 +15,6 @@ public class Score : MonoBehaviour
     {
         golfBall = FindAnyObjectByType<GolfBall>();
 
-        // Initialize Firebase
         auth = FirebaseAuth.DefaultInstance;
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
     }
@@ -35,7 +34,6 @@ public class Score : MonoBehaviour
 
         string userId = auth.CurrentUser.UserId;
 
-        // Get the current best score from Firebase
         dbReference.Child("users").Child(userId).Child("bestScore").GetValueAsync().ContinueWithOnMainThread(task =>
         {
             if (task.Exception != null)
@@ -46,13 +44,11 @@ public class Score : MonoBehaviour
 
             float storedBestScore = 0;
 
-            // Check if data exists in the database
             if (task.Result.Exists)
             {
                 storedBestScore = float.Parse(task.Result.Value.ToString());
             }
 
-            // Save only if the new score is better
             if (bestDistance > storedBestScore)
             {
                 dbReference.Child("users").Child(userId).Child("bestScore").SetValueAsync(bestDistance).ContinueWithOnMainThread(saveTask =>

@@ -115,10 +115,20 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         matchState = newState;
 
-        Animator golfBallAnimator = golfBall.GetComponent<Animator>();
-
         if (invokeShoot)
         {
+            GameObject golfClub = GameObject.FindWithTag("Golfclub");
+            Animator golfClubAnimator = golfClub.GetComponent<Animator>();
+            AnimatorStateInfo info = golfClubAnimator.GetCurrentAnimatorStateInfo(0);
+            golfClubAnimator.Play("GolfSwing");
+
+            while (!info.IsName("stop"))
+            {
+                Debug.Log("While!");
+                info = golfClubAnimator.GetCurrentAnimatorStateInfo(0);
+                yield return new WaitForEndOfFrame();
+            }
+
             Debug.Log("Invoking Shoot action...");
             ShootActivate?.Invoke();
             StartCoroutine(PowerUpManager.instance.PowerUpTimer());

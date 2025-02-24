@@ -50,7 +50,6 @@ public class MainMenu : MonoBehaviour
 
             float storedBestScore = 0;
 
-            // Check if data exists in the database
             if (task.Result.Exists)
             {
                 storedBestScore = float.Parse(task.Result.Value.ToString());

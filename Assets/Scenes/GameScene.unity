@@ -1380,8 +1380,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 0.9607844, g: 0, b: 0, a: 1}
+      key0: {r: 0.9607844, g: 0, b: 0, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
       key2: {r: 0.9607844, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -1389,7 +1389,7 @@ LineRenderer:
       key6: {r: 0, g: 0, b: 0, a: 0}
       key7: {r: 0, g: 0, b: 0, a: 0}
       ctime0: 0
-      ctime1: 13493
+      ctime1: 0
       ctime2: 59367
       ctime3: 0
       ctime4: 0
@@ -1511,9 +1511,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1800247464273891219, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
+      propertyPath: m_PreviewTimeScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3140915037977574099, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
       propertyPath: m_Name
       value: GolfBall
+      objectReference: {fileID: 0}
+    - target: {fileID: 5608173279728719804, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.16
+      objectReference: {fileID: 0}
+    - target: {fileID: 5608173279728719804, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.13
       objectReference: {fileID: 0}
     - target: {fileID: 7397837419699259851, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1574,6 +1586,10 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1687911437579469060, guid: 8a96e55000cfe724196bdd585d0096b1, type: 3}
       propertyPath: m_Name
+      value: Golfclub
+      objectReference: {fileID: 0}
+    - target: {fileID: 1687911437579469060, guid: 8a96e55000cfe724196bdd585d0096b1, type: 3}
+      propertyPath: m_TagString
       value: Golfclub
       objectReference: {fileID: 0}
     - target: {fileID: 6125300765046516360, guid: 8a96e55000cfe724196bdd585d0096b1, type: 3}

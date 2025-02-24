@@ -89,12 +89,20 @@ public class Lobbies : MonoBehaviour
                     if (task3.Exception != null)
                     {
                         Debug.LogError("Failed to create lobby: " + task3.Exception);
+                        return;
                     }
-                    else
+
+                    dbReference.Child("users").Child(userID).Child("lobbyCode").SetValueAsync(lobbyID).ContinueWithOnMainThread(task4 =>
                     {
-                        Debug.Log("Lobby created successfully with ID: " + lobbyID + " by " + username);
+                        if (task4.Exception != null)
+                        {
+                            Debug.LogError("Failed to save lobby code to user data: " + task4.Exception);
+                            return;
+                        }
+
+                        Debug.Log($"Lobby created successfully with ID: {lobbyID} by {username}");
                         SceneManager.LoadScene("Lobby");
-                    }
+                    });
                 });
             });
         });
@@ -153,16 +161,22 @@ public class Lobbies : MonoBehaviour
                     if (task3.Exception != null)
                     {
                         Debug.LogError("Failed to join lobby: " + task3.Exception);
+                        return;
                     }
-                    else
+
+                    dbReference.Child("users").Child(userID).Child("lobbyCode").SetValueAsync(lobbyCode).ContinueWithOnMainThread(task4 =>
                     {
+                        if (task4.Exception != null)
+                        {
+                            Debug.LogError("Failed to save lobby code to user data: " + task4.Exception);
+                            return;
+                        }
+
                         Debug.Log($"Joined lobby {lobbyCode}. Host: {task2.Result.Child("Host").Value}");
                         SceneManager.LoadScene("Lobby");
-                    }
+                    });
                 });
             });
         });
     }
-
-
 }

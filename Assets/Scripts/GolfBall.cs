@@ -58,14 +58,14 @@ public class GolfBall : MonoBehaviour
         }
         Debug.Log($"Shooting with Direction: {angleIndicator.direction}, Power: {powerIndicator.powerValue}");
         rb2D.AddForce(angleIndicator.direction * powerIndicator.powerValue, ForceMode2D.Impulse);
-        golfBallTrail.Play();
+        //golfBallTrail.Play();
 
     }
 
     private void WhenLanding()
     {
         Distance();
-        golfBallTrail.Stop();
+        //golfBallTrail.Stop();
         GameManager.instance.WhenLanding();
 
     }

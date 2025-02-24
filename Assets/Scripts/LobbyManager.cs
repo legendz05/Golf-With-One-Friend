@@ -3,22 +3,44 @@ using Firebase.Database;
 using Firebase.Extensions;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class LobbyManager : MonoBehaviour
 {
     public DatabaseReference dbReference;
     public TextMeshProUGUI hostPlayer;
     public TextMeshProUGUI guestPlayer;
+    public TextMeshProUGUI lobbyCodeText;
+    public TextMeshProUGUI readyPlayersText;
 
     private FirebaseAuth auth;
     private string currentUser;
+    private int readyPlayers = 0;
 
     private void OnEnable()
     {
         auth = FirebaseAuth.DefaultInstance;
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
 
-        Invoke(nameof(GetCurrentUser), 3);
+        Debug.Log("Fetching current user...");
+        GetCurrentUser();
+    }
+
+    public void Update()
+    {
+        if (readyPlayers == 2)
+        {
+            SceneManager.LoadScene("GameScene");
+            readyPlayers = 0;
+        }
+    }
+
+    public void numOfPlayers()
+    {
+        readyPlayers++;
+        readyPlayersText.text = $"Ready Players: {readyPlayers}/2";
     }
 
     void GetCurrentUser()
@@ -46,15 +68,49 @@ public class LobbyManager : MonoBehaviour
             }
 
             currentUser = task.Result.Value.ToString();
-            GetPlayersInLobby();
+            Debug.Log($"Current user: {currentUser}");
+
+            GetLobbyCode();
         });
     }
 
-    void GetPlayersInLobby()
+    void GetLobbyCode()
     {
-        dbReference.Child("lobbies").GetValueAsync().ContinueWithOnMainThread(task =>
+        if (auth.CurrentUser == null)
         {
-            if (task.IsFaulted)
+            Debug.LogError("User is not authenticated. Cannot access lobby data.");
+            return;
+        }
+
+        string userID = auth.CurrentUser.UserId;
+
+        dbReference.Child("users").Child(userID).Child("lobbyCode").GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.Exception != null)
+            {
+                Debug.LogError("Failed to get lobby code: " + task.Exception);
+                return;
+            }
+
+            if (!task.Result.Exists || string.IsNullOrEmpty(task.Result.Value?.ToString()))
+            {
+                Debug.LogError("No lobby code found for user.");
+                return;
+            }
+
+            string lobbyCode = task.Result.Value.ToString();
+            Debug.Log($"Lobby code retrieved: {lobbyCode}");
+
+            GetPlayersInLobby(lobbyCode);
+            lobbyCodeText.text = lobbyCode;
+        });
+    }
+
+    void GetPlayersInLobby(string lobbyCode)
+    {
+        dbReference.Child("lobbies").Child(lobbyCode).GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.Exception != null)
             {
                 Debug.LogError("Failed to load lobby data: " + task.Exception);
                 return;
@@ -62,26 +118,24 @@ public class LobbyManager : MonoBehaviour
 
             if (!task.Result.Exists)
             {
-                Debug.LogError("No lobbies found!");
+                Debug.LogError("Lobby not found!");
                 return;
             }
 
-            foreach (var lobby in task.Result.Children)
-            {
-                string lobbyID = lobby.Key;
-                string host = lobby.Child("Host").Value.ToString();
-                string guest = lobby.Child("Guest").Value.ToString();
+            string host = task.Result.Child("Host").Value?.ToString() ?? "Unknown Host";
+            string guest = task.Result.Child("Guest").Value?.ToString() ?? "No Guest";
 
-                if (host == currentUser || guest == currentUser)
-                {
-                    Debug.Log($"Found lobby: {lobbyID}");
-                    hostPlayer.text = $"Host: {host}";
-                    guestPlayer.text = $"Guest: {guest}";
-                    return;
-                }
-            }
+            Debug.Log($"Lobby found: {lobbyCode}");
 
-            Debug.LogError("User is not in any lobby.");
+            if (hostPlayer != null)
+                hostPlayer.text = $"Host: {host}";
+            else
+                Debug.LogError("hostPlayer UI reference is missing!");
+
+            if (guestPlayer != null)
+                guestPlayer.text = $"Guest: {guest}";
+            else
+                Debug.LogError("guestPlayer UI reference is missing!");
         });
     }
 }
