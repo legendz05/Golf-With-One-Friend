@@ -6,6 +6,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using Firebase.Auth;
+using Firebase.Database;
+using Firebase.Extensions;
 
 public class GameManager : MonoBehaviour
 {
@@ -27,6 +30,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI distanceText;
     [SerializeField] private TextMeshProUGUI roundCountDownText;
     [SerializeField] private TextMeshProUGUI bestDistance;
+    [SerializeField] private GameObject endGameCanvas;
+
+    private bool isRoundOver = false;
+    private float hostBestScore = 0;
+    private float guestBestScore = 0;
+    private string lobbyCode;
 
     void Awake()
     {
@@ -41,14 +50,32 @@ public class GameManager : MonoBehaviour
 
         golfBall = FindAnyObjectByType<GolfBall>();
         if (golfBall != null) { }
+
+        endGameCanvas.SetActive(false);
+
     }
 
-    private void Start()
+    void Start()
     {
         currentRound = 1;
 
+        string userID = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
+        FirebaseDatabase.DefaultInstance
+            .GetReference("users")
+            .Child(userID)
+            .Child("lobbyCode")
+            .GetValueAsync().ContinueWithOnMainThread(task =>
+            {
+                if (task.IsCompleted && task.Result.Exists)
+                {
+                    lobbyCode = task.Result.Value.ToString();
+                    Debug.Log($"Lobby Code: {lobbyCode}");
+                }
+            });
+
         StartCoroutine(RoundBegin());
     }
+
 
     private IEnumerator RoundBegin()
     {
@@ -58,7 +85,7 @@ public class GameManager : MonoBehaviour
         SetPower -= OnPowerSet;
         SetPower += OnPowerSet;
 
-        matchState = MatchState.Intermission;
+        StartCoroutine(TransitionToState(MatchState.Intermission));
         distanceText.text = "";
 
         yield return new WaitForSeconds(0.1f);
@@ -72,16 +99,10 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(1);
 
         roundCountDownText.text = "";
-        matchState = MatchState.GolfBallAngle;
+        StartCoroutine(TransitionToState(MatchState.GolfBallAngle));
 
         yield return null;
     }
-
-    void Update()
-    {
-        //Debug.Log($"Current MatchState: {matchState}");
-    }
-
 
     public void OnAngleSet()
     {
@@ -99,15 +120,79 @@ public class GameManager : MonoBehaviour
 
     public void WhenLanding()
     {
+        if (isRoundOver) return;
         Debug.Log("WhenLanding called: Changing state to GolfBallGrounded");
         StartCoroutine(TransitionToState(MatchState.GolfBallGrounded));
         UpdateScore();
         Invoke(nameof(RoundOver), 5);
     }
 
+
     private void UpdateScore()
     {
-        distanceText.text = $"Distance: {golfBall.Distance()}m";
+        float currentDistance = golfBall.Distance();
+        distanceText.text = $"Distance: {currentDistance}m";
+
+        string userID = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
+
+        if (IsHost())
+        {
+            if (currentDistance > hostBestScore)
+            {
+                hostBestScore = currentDistance;
+                FirebaseDatabase.DefaultInstance
+                    .GetReference("lobbies")
+                    .Child(lobbyCode)
+                    .Child("Scores")
+                    .Child("Host")
+                    .SetValueAsync(hostBestScore);
+            }
+        }
+        else
+        {
+            if (currentDistance > guestBestScore)
+            {
+                guestBestScore = currentDistance;
+                FirebaseDatabase.DefaultInstance
+                    .GetReference("lobbies")
+                    .Child(lobbyCode)
+                    .Child("Scores")
+                    .Child("Guest")
+                    .SetValueAsync(guestBestScore);
+            }
+        }
+    }
+
+    private bool IsHost()
+    {
+        string userID = FirebaseAuth.DefaultInstance.CurrentUser.UserId;
+        bool isHost = false;
+
+        FirebaseDatabase.DefaultInstance
+            .GetReference("users")
+            .Child(userID)
+            .Child("lobbyCode")
+            .GetValueAsync().ContinueWithOnMainThread(task =>
+            {
+                if (task.IsCompleted && task.Result.Exists)
+                {
+                    lobbyCode = task.Result.Value.ToString();
+
+                    FirebaseDatabase.DefaultInstance
+                        .GetReference("lobbies")
+                        .Child(lobbyCode)
+                        .Child("Host")
+                        .GetValueAsync().ContinueWithOnMainThread(task2 =>
+                        {
+                            if (task2.IsCompleted && task2.Result.Exists)
+                            {
+                                isHost = (task2.Result.Value.ToString() == userID);
+                            }
+                        });
+                }
+            });
+
+        return isHost;
     }
 
     private IEnumerator TransitionToState(MatchState newState, bool invokeShoot = false)
@@ -137,7 +222,11 @@ public class GameManager : MonoBehaviour
 
     private void RoundOver()
     {
+        if (isRoundOver) return;
+        isRoundOver = true;
+
         currentRound += 1;
+        Debug.Log($"RoundOver called. Current Round: {currentRound}");
 
         if (currentRound < 4)
         {
@@ -149,15 +238,69 @@ public class GameManager : MonoBehaviour
         {
             distanceText.text = "";
             bestDistance.text = $"Best Distance: {golfBall.bestDistance}m";
-            Invoke(nameof(LoadMain), 3);
-
+            CheckBestScore();
+            endGameCanvas.SetActive(true);
+            Invoke(nameof(LoadMain), 5);
         }
+
+        isRoundOver = false;
     }
+
 
     void LoadMain()
     {
-        SceneManager.LoadScene("Login");
+        if (!string.IsNullOrEmpty(lobbyCode))
+        {
+            FirebaseDatabase.DefaultInstance
+                .GetReference("lobbies")
+                .Child(lobbyCode)
+                .RemoveValueAsync().ContinueWithOnMainThread(task =>
+                {
+                    if (task.IsCompleted)
+                    {
+                        Debug.Log($"Lobby {lobbyCode} deleted successfully.");
+                    }
+                    else
+                    {
+                        Debug.LogError($"Failed to delete lobby: {task.Exception}");
+                    }
+                });
+        }
+
+        SceneManager.LoadScene("MainMenu");
     }
+
+
+    private void CheckBestScore()
+    {
+        FirebaseDatabase.DefaultInstance
+            .GetReference("lobbies")
+            .Child(lobbyCode)
+            .Child("Scores")
+            .GetValueAsync().ContinueWithOnMainThread(task =>
+            {
+                if (task.IsCompleted && task.Result.Exists)
+                {
+                    DataSnapshot scores = task.Result;
+                    int hostScore = int.Parse(scores.Child("Host").Value.ToString());
+                    int guestScore = int.Parse(scores.Child("Guest").Value.ToString());
+
+                    if (hostScore > guestScore)
+                    {
+                        bestDistance.text = $"Winner: Host with {hostScore}m";
+                    }
+                    else if (guestScore > hostScore)
+                    {
+                        bestDistance.text = $"Winner: Guest with {guestScore}m";
+                    }
+                    else
+                    {
+                        bestDistance.text = "It's a Tie!";
+                    }
+                }
+            });
+    }
+
 }
 
 public enum MatchState
