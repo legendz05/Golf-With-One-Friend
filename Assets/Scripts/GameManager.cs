@@ -352,13 +352,13 @@ public class GameManager : MonoBehaviour
                     int hostScore = int.Parse(scores.Child("Host").Value.ToString());
                     int guestScore = int.Parse(scores.Child("Guest").Value.ToString());
 
-                    if (hostScore > guestScore)
+                    if (hostBestScore > guestBestScore)
                     {
-                        winnerText.text = $"Winner: Host with {hostScore}m";
+                        winnerText.text = $"Winner: Host with {hostBestScore}m";
                     }
-                    else if (guestScore > hostScore)
+                    else if (guestBestScore > hostBestScore)
                     {
-                        winnerText.text = $"Winner: Guest with {guestScore}m";
+                        winnerText.text = $"Winner: Guest with {guestBestScore}m";
                     }
                     else
                     {

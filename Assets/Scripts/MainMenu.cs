@@ -55,7 +55,7 @@ public class MainMenu : MonoBehaviour
                 storedBestScore = float.Parse(task.Result.Value.ToString());
             }
 
-            highscoreText.text = storedBestScore.ToString();
+            highscoreText.text = "Highscore: " + storedBestScore.ToString() + "m";
         });
     }
 
