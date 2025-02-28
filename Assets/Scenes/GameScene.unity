@@ -614,7 +614,7 @@ MonoBehaviour:
   distanceText: {fileID: 12575964}
   roundCountDownText: {fileID: 1954121847}
   bestDistance: {fileID: 767455287}
-  endGameCanvas: {fileID: 747241551}
+  winnerText: {fileID: 2055161075}
 --- !u!114 &614929917
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -645,7 +645,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &747241552
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1455,7 +1455,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Winner:'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1750,21 +1750,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1800247464273891219, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
-      propertyPath: m_PreviewTimeScale
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3140915037977574099, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
       propertyPath: m_Name
       value: GolfBall
-      objectReference: {fileID: 0}
-    - target: {fileID: 5608173279728719804, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0.16
-      objectReference: {fileID: 0}
-    - target: {fileID: 5608173279728719804, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.13
       objectReference: {fileID: 0}
     - target: {fileID: 7397837419699259851, guid: dd907d16ef4ac7c4aa70517e6e5d8ea7, type: 3}
       propertyPath: m_LocalPosition.x

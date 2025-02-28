@@ -18,6 +18,10 @@ public class LobbyManager : MonoBehaviour
     private FirebaseAuth auth;
     private string currentUser;
     private int readyPlayers = 0;
+    private string lobbyCode;
+    private bool isHost = false;
+    private bool isGuest = false;
+
 
     private void OnEnable()
     {
@@ -30,18 +34,27 @@ public class LobbyManager : MonoBehaviour
 
     public void Update()
     {
-        if (readyPlayers == 2)
+
+    }
+
+    public void ToggleReadyStatus()
+    {
+        if (string.IsNullOrEmpty(lobbyCode))
         {
-            SceneManager.LoadScene("GameScene");
-            readyPlayers = 0;
+            Debug.LogError("Lobby code is not set. Cannot update ready status.");
+            return;
+        }
+
+        if (isHost)
+        {
+            dbReference.Child("lobbies").Child(lobbyCode).Child("Ready").Child("Host").SetValueAsync(true);
+        }
+        else if (isGuest)
+        {
+            dbReference.Child("lobbies").Child(lobbyCode).Child("Ready").Child("Guest").SetValueAsync(true);
         }
     }
 
-    public void numOfPlayers()
-    {
-        readyPlayers++;
-        readyPlayersText.text = $"Ready Players: {readyPlayers}/2";
-    }
 
     void GetCurrentUser()
     {
@@ -74,6 +87,35 @@ public class LobbyManager : MonoBehaviour
         });
     }
 
+    void ListenForReadyStatus()
+    {
+        dbReference.Child("lobbies").Child(lobbyCode).Child("Ready").ValueChanged += HandleReadyStatusChanged;
+    }
+
+    private void HandleReadyStatusChanged(object sender, ValueChangedEventArgs e)
+    {
+        if (e.DatabaseError != null)
+        {
+            Debug.LogError($"Firebase error: {e.DatabaseError.Message}");
+            return;
+        }
+
+        if (e.Snapshot.Exists)
+        {
+            bool hostReady = e.Snapshot.Child("Host").Value != null && (bool)e.Snapshot.Child("Host").Value;
+            bool guestReady = e.Snapshot.Child("Guest").Value != null && (bool)e.Snapshot.Child("Guest").Value;
+
+            readyPlayersText.text = $"Ready Players: {(hostReady ? 1 : 0) + (guestReady ? 1 : 0)}/2";
+
+            if (hostReady && guestReady)
+            {
+                Debug.Log("Both players are ready. Starting the game...");
+                SceneManager.LoadScene("GameScene");
+            }
+        }
+    }
+
+
     void GetLobbyCode()
     {
         if (auth.CurrentUser == null)
@@ -98,13 +140,42 @@ public class LobbyManager : MonoBehaviour
                 return;
             }
 
-            string lobbyCode = task.Result.Value.ToString();
+            lobbyCode = task.Result.Value.ToString();
             Debug.Log($"Lobby code retrieved: {lobbyCode}");
 
-            GetPlayersInLobby(lobbyCode);
-            lobbyCodeText.text = lobbyCode;
+            dbReference.Child("lobbies").Child(lobbyCode).GetValueAsync().ContinueWithOnMainThread(task2 =>
+            {
+                if (task2.Exception != null)
+                {
+                    Debug.LogError("Failed to get lobby details: " + task2.Exception);
+                    return;
+                }
+
+                if (task2.Result.Exists)
+                {
+                    string host = task2.Result.Child("Host").Value?.ToString();
+                    string guest = task2.Result.Child("Guest").Value?.ToString();
+
+                    if (currentUser == host)
+                    {
+                        isHost = true;
+                        Debug.Log("Current user is the Host.");
+                    }
+                    else if (currentUser == guest)
+                    {
+                        isGuest = true;
+                        Debug.Log("Current user is the Guest.");
+                    }
+
+                    GetPlayersInLobby(lobbyCode);
+                    lobbyCodeText.text = lobbyCode;
+
+                    ListenForReadyStatus();
+                }
+            });
         });
     }
+
 
     void GetPlayersInLobby(string lobbyCode)
     {
@@ -138,4 +209,20 @@ public class LobbyManager : MonoBehaviour
                 Debug.LogError("guestPlayer UI reference is missing!");
         });
     }
+
+    void OnDisable()
+    {
+        if (!string.IsNullOrEmpty(lobbyCode))
+        {
+            if (isHost)
+            {
+                dbReference.Child("lobbies").Child(lobbyCode).Child("Ready").Child("Host").SetValueAsync(false);
+            }
+            else if (isGuest)
+            {
+                dbReference.Child("lobbies").Child(lobbyCode).Child("Ready").Child("Guest").SetValueAsync(false);
+            }
+        }
+    }
+
 }

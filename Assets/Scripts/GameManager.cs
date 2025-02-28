@@ -30,12 +30,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI distanceText;
     [SerializeField] private TextMeshProUGUI roundCountDownText;
     [SerializeField] private TextMeshProUGUI bestDistance;
-    [SerializeField] private GameObject endGameCanvas;
+    [SerializeField] private TextMeshProUGUI winnerText;
 
     private bool isRoundOver = false;
     private float hostBestScore = 0;
     private float guestBestScore = 0;
     private string lobbyCode;
+    private bool isPlayerDone = false;
+
 
     void Awake()
     {
@@ -50,9 +52,6 @@ public class GameManager : MonoBehaviour
 
         golfBall = FindAnyObjectByType<GolfBall>();
         if (golfBall != null) { }
-
-        endGameCanvas.SetActive(false);
-
     }
 
     void Start()
@@ -70,11 +69,14 @@ public class GameManager : MonoBehaviour
                 {
                     lobbyCode = task.Result.Value.ToString();
                     Debug.Log($"Lobby Code: {lobbyCode}");
+
+                    ListenForCompletionStatus();
                 }
             });
 
         StartCoroutine(RoundBegin());
     }
+
 
 
     private IEnumerator RoundBegin()
@@ -220,6 +222,45 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void ListenForCompletionStatus()
+    {
+        FirebaseDatabase.DefaultInstance
+            .GetReference("lobbies")
+            .Child(lobbyCode)
+            .Child("CompletionCount")
+            .ValueChanged += HandleCompletionCountChanged;
+    }
+
+    private void HandleCompletionCountChanged(object sender, ValueChangedEventArgs e)
+    {
+        if (e.DatabaseError != null)
+        {
+            Debug.LogError($"Firebase error: {e.DatabaseError.Message}");
+            return;
+        }
+
+        if (e.Snapshot.Exists)
+        {
+            int completionCount = int.Parse(e.Snapshot.Value.ToString());
+            Debug.Log($"CompletionCount: {completionCount}");
+
+            if (completionCount >= 2)
+            {
+                DisplayWinnerAndEndGame();
+            }
+        }
+    }
+
+
+    private void DisplayWinnerAndEndGame()
+    {
+        CheckBestScore();
+
+        isRoundOver = true;
+
+        StartCoroutine(EndGameSequence());
+    }
+
     private void RoundOver()
     {
         if (isRoundOver) return;
@@ -228,7 +269,7 @@ public class GameManager : MonoBehaviour
         currentRound += 1;
         Debug.Log($"RoundOver called. Current Round: {currentRound}");
 
-        if (currentRound < 4)
+        if (currentRound < 6)
         {
             ResetPlayer?.Invoke();
             ResetRound?.Invoke();
@@ -238,17 +279,43 @@ public class GameManager : MonoBehaviour
         {
             distanceText.text = "";
             bestDistance.text = $"Best Distance: {golfBall.bestDistance}m";
-            CheckBestScore();
-            endGameCanvas.SetActive(true);
-            Invoke(nameof(LoadMain), 5);
+
+            FirebaseDatabase.DefaultInstance
+                .GetReference("lobbies")
+                .Child(lobbyCode)
+                .Child("CompletionCount")
+                .RunTransaction(mutableData =>
+                {
+                    int currentCount = 0;
+                    if (mutableData.Value != null)
+                    {
+                        currentCount = int.Parse(mutableData.Value.ToString());
+                    }
+                    mutableData.Value = currentCount + 1;
+                    return TransactionResult.Success(mutableData);
+                }).ContinueWithOnMainThread(task =>
+                {
+                    if (task.Exception != null)
+                    {
+                        Debug.LogError($"Failed to update CompletionCount: {task.Exception}");
+                    }
+                    else
+                    {
+                        Debug.Log($"CompletionCount updated successfully.");
+                    }
+                });
+
+            isPlayerDone = true;
         }
 
         isRoundOver = false;
     }
 
 
-    void LoadMain()
+    private IEnumerator EndGameSequence()
     {
+        yield return new WaitForSeconds(5);
+
         if (!string.IsNullOrEmpty(lobbyCode))
         {
             FirebaseDatabase.DefaultInstance
@@ -287,19 +354,32 @@ public class GameManager : MonoBehaviour
 
                     if (hostScore > guestScore)
                     {
-                        bestDistance.text = $"Winner: Host with {hostScore}m";
+                        winnerText.text = $"Winner: Host with {hostScore}m";
                     }
                     else if (guestScore > hostScore)
                     {
-                        bestDistance.text = $"Winner: Guest with {guestScore}m";
+                        winnerText.text = $"Winner: Guest with {guestScore}m";
                     }
                     else
                     {
-                        bestDistance.text = "It's a Tie!";
+                        winnerText.text = "It's a Tie!";
                     }
                 }
             });
     }
+
+    private void OnDestroy()
+    {
+        if (!string.IsNullOrEmpty(lobbyCode))
+        {
+            FirebaseDatabase.DefaultInstance
+                .GetReference("lobbies")
+                .Child(lobbyCode)
+                .Child("CompletionCount")
+                .ValueChanged -= HandleCompletionCountChanged;
+        }
+    }
+
 
 }
 

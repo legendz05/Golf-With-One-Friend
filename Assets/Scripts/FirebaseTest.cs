@@ -9,7 +9,6 @@ using UnityEngine.UI;
 using NUnit.Framework;
 using System.Text.RegularExpressions;
 using System;
-using UnityEditor.VersionControl;
 
 public class FirebaseTest : MonoBehaviour
 {

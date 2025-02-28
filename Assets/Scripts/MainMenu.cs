@@ -59,6 +59,18 @@ public class MainMenu : MonoBehaviour
         });
     }
 
+    public void BackToMain()
+    {
+        GetComponent<Lobbies>().menuObject.SetActive(true);
+        GetComponent<Lobbies>().lobbyObject.SetActive(false);
+        statsObject.SetActive(false);
+    }
+
+    public void Quit()
+    {
+        Application.Quit();
+    }
+
     // Update is called once per frame
     void Update()
     {

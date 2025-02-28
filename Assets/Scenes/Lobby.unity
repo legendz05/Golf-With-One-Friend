@@ -340,7 +340,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1366401229}
         m_TargetAssemblyTypeName: LobbyManager, Assembly-CSharp
-        m_MethodName: numOfPlayers
+        m_MethodName: ToggleReadyStatus
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
