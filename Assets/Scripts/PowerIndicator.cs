@@ -8,18 +8,26 @@ public class PowerIndicator : MonoBehaviour
     private Slider slider;
     private bool changeDirection = false;
     public float powerValue;
+    public float powerSpeed = 1f;
+
 
     void Start()
     {
         slider = FindAnyObjectByType(typeof(Slider)) as Slider;
         slider.value = 0;
 
+        if (powerSpeed <= 0)
+        {
+            powerSpeed = 1f;
+        }
+
         GameManager.instance.ResetPlayer -= ResetSlider;
         GameManager.instance.ResetPlayer += ResetSlider;
     }
 
+
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         CheckPowerStateInMatch();
     }
@@ -54,21 +62,24 @@ public class PowerIndicator : MonoBehaviour
     {
         if (!changeDirection)
         {
-            slider.value += 1;
-            if (slider.value == slider.maxValue)
+            slider.value += powerSpeed * Time.deltaTime;
+            if (slider.value >= slider.maxValue)
             {
-                changeDirection = !changeDirection;
+                slider.value = slider.maxValue;
+                changeDirection = true;
             }
         }
-        else if (changeDirection)
+        else
         {
-            slider.value -= 1;
-            if (slider.value == slider.minValue)
+            slider.value -= powerSpeed * Time.deltaTime;
+            if (slider.value <= slider.minValue)
             {
-                changeDirection = !changeDirection;
+                slider.value = slider.minValue;
+                changeDirection = false;
             }
         }
     }
+
 
     public void ResetSlider()
     {

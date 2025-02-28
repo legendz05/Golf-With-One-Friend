@@ -12,6 +12,8 @@ public class AngleIndicator : MonoBehaviour
     [SerializeField] private float currentAngle;
 
     private bool decreaseAngle = false;
+    public float angleSpeed = 30f;
+
 
     private void Start()
     {
@@ -19,8 +21,14 @@ public class AngleIndicator : MonoBehaviour
         GameManager.instance.ResetPlayer += ResetAngle;
 
         currentAngle = 0f;
+
+        if (angleSpeed <= 0)
+        {
+            angleSpeed = 30f;
+        }
     }
-    void Update()
+
+    void FixedUpdate()
     {
         CheckAngleStateInMatch();
     }
@@ -49,20 +57,22 @@ public class AngleIndicator : MonoBehaviour
     {
         if (!decreaseAngle)
         {
-            currentAngle += 1f; // Increase angle
+            currentAngle += angleSpeed * Time.deltaTime;
 
             if (currentAngle >= 90)
             {
-                decreaseAngle = !decreaseAngle;
+                currentAngle = 90;
+                decreaseAngle = true;
             }
         }
         else if (decreaseAngle)
         {
-            currentAngle -= 1f; // Decrease angle
+            currentAngle -= angleSpeed * Time.deltaTime;
 
             if (currentAngle <= 0)
             {
-                decreaseAngle = !decreaseAngle;
+                currentAngle = 0;
+                decreaseAngle = false;
             }
         }
 
@@ -76,6 +86,7 @@ public class AngleIndicator : MonoBehaviour
         lineRenderer.SetPosition(0, startPoint);
         lineRenderer.SetPosition(1, endPoint);
     }
+
 
     public void ResetAngle()
     {
